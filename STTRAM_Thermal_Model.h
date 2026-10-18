@@ -109,7 +109,7 @@ public:
     void resetPower();
     double calculateLateralHeat(int i, int j);
     void thermalStep();
-    void runFullSimulation(const std::string& results_folder = "Results");
+    bool runFullSimulation(const std::string& results_folder = "Results");
 
  
     // For Testing Purposes
