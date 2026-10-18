@@ -44,7 +44,10 @@ int main(int argc, char* argv[]) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     // Run the simulation
-    stt_ram_cache.runFullSimulation(results_folder);
+    if (!stt_ram_cache.runFullSimulation(results_folder)) {
+        std::cerr << "[ERROR] Simulation failed.\n";
+        return 1;
+    }
 
     // Calculate simulation time
     auto end_time = std::chrono::high_resolution_clock::now();

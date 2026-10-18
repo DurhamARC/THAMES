@@ -213,7 +213,7 @@ void ThermalModel::thermalStep() {
 
 
 
-void ThermalModel::runFullSimulation(const std::string& results_folder){
+bool ThermalModel::runFullSimulation(const std::string& results_folder){
     int N_timesteps = sim_write_data[0].size();
 
     // DEBUG: Find the exact running location of the program
@@ -221,13 +221,11 @@ void ThermalModel::runFullSimulation(const std::string& results_folder){
     // Define the results folder wherever is most convenient for you
     std::error_code ec; //This will catch OS errors
     
-    // Check if folder exists, and catch any OS errors
-    if (!fs::exists(results_folder, ec)) {
-        if (!fs::create_directories(results_folder, ec)) {
-            std::cerr << "CRITICAL ERROR: OS refused to create " << results_folder << " folder!\n";
-            std::cerr << "Reason: " << ec.message() << "\n";
-            return; // Abort the simulation if the results folder cant be created
-        }
+    fs::create_directories(results_folder, ec);
+    if (ec) {
+        std::cerr << "CRITICAL ERROR: OS refused to create '" << results_folder << "' folder!\n";
+        std::cerr << "Reason: " << ec.message() << "\n";
+        return false;
     }
 
     // Build the clean log filename
@@ -246,7 +244,7 @@ void ThermalModel::runFullSimulation(const std::string& results_folder){
     } else {
         std::cerr << "CRITICAL ERROR: Failed to open file at " << full_path.string() << "\n";
         std::cerr << "Workload name parsed as: '" << current_workload_name << "'\n"; 
-        return; 
+        return false;
     }
 
     for (int timestep = 0; timestep < N_timesteps; timestep++){
@@ -270,6 +268,8 @@ void ThermalModel::runFullSimulation(const std::string& results_folder){
             printMaxTemp();// For debugging
         }
     }
+
+    return true;
 }
 
 
