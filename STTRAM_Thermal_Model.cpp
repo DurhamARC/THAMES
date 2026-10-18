@@ -213,20 +213,18 @@ void ThermalModel::thermalStep() {
 
 
 
-void ThermalModel::runFullSimulation(){
+void ThermalModel::runFullSimulation(const std::string& results_folder){
     int N_timesteps = sim_write_data[0].size();
 
     // DEBUG: Find the exact running location of the program
     std::cout << "DEBUG: Current working directory is: " << fs::current_path().string() << "\n";
     // Define the results folder wherever is most convenient for you
-    std::string results_folder = "Results";
     std::error_code ec; //This will catch OS errors
     
     // Check if folder exists, and catch any OS errors
     if (!fs::exists(results_folder, ec)) {
-        // Try to create the directory, catch OS errors if it fails
-        if (!fs::create_directory(results_folder, ec)) {
-            std::cerr << "CRITICAL ERROR: OS refused to create 'Results' folder!\n";
+        if (!fs::create_directories(results_folder, ec)) {
+            std::cerr << "CRITICAL ERROR: OS refused to create " << results_folder << " folder!\n";
             std::cerr << "Reason: " << ec.message() << "\n";
             return; // Abort the simulation if the results folder cant be created
         }

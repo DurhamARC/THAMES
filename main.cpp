@@ -15,12 +15,13 @@ int main(int argc, char* argv[]) {
     std::cout << "         STT-RAM Thermal Simulation Engine\n";
     std::cout << "==================================================\n\n";
 
-    if (argc > 2) {
-        std::cerr << "Usage: " << argv[0] << " [path/to/file.csv]\n";
+    if (argc > 3) {
+        std::cerr << "Usage: " << argv[0] << " [path/to/file.csv] [results_folder]\n";
         return 1;
     }
 
-    std::string csv_file_path = (argc == 2) ? argv[1] : "data/stream.csv";
+    std::string csv_file_path = (argc >= 2) ? argv[1] : "data/stream.csv";
+    std::string results_folder = (argc == 3) ? argv[2] : "Results";
 
     std::cout << "Attempting to load file: \n" << csv_file_path << "\n\n";
 
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     // Run the simulation
-    stt_ram_cache.runFullSimulation();
+    stt_ram_cache.runFullSimulation(results_folder);
 
     // Calculate simulation time
     auto end_time = std::chrono::high_resolution_clock::now();
