@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --account=bddur64
-#SBATCH --time=23:00:00
+#SBATCH --time=1:00:00
 #SBATCH --partition=infer          # Change to a CPU partition if your cluster has one
 #SBATCH --job-name=THAMES
 #SBATCH -o job_thames-%A_%a.out
