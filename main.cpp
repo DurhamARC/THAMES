@@ -10,12 +10,17 @@
 #include "STTRAM_Power_Model.h"
 #include "STTRAM_Thermal_Model.h"
 
-int main() {
+int main(int argc, char* argv[]) {
     std::cout << "==================================================\n";
     std::cout << "         STT-RAM Thermal Simulation Engine\n";
     std::cout << "==================================================\n\n";
 
-    std::string csv_file_path = "data/stream.csv"; //add own file path here
+    if (argc > 2) {
+        std::cerr << "Usage: " << argv[0] << " [path/to/file.csv]\n";
+        return 1;
+    }
+
+    std::string csv_file_path = (argc == 2) ? argv[1] : "data/stream.csv";
 
     std::cout << "Attempting to load file: \n" << csv_file_path << "\n\n";
 
