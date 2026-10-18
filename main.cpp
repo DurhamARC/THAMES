@@ -7,15 +7,15 @@
 #include <array>
 #include <bit>
 #include "Read_sim_stats.h"
-#include "STTRAM_Power_model.h"
-#include "STTRAM_thermal_model.h"
+#include "STTRAM_Power_Model.h"
+#include "STTRAM_Thermal_Model.h"
 
 int main() {
     std::cout << "==================================================\n";
     std::cout << "         STT-RAM Thermal Simulation Engine\n";
     std::cout << "==================================================\n\n";
 
-    std::string csv_file_path = "C:/Users/Aditya/Documents/Uni/Individual Project/Therms_Stats_CSV/stream.csv"; //add own file path here
+    std::string csv_file_path = "data/stream.csv"; //add own file path here
 
     std::cout << "Attempting to load file: \n" << csv_file_path << "\n\n";
 

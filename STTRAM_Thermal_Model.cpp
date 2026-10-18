@@ -7,8 +7,8 @@
 #include <array>
 #include <bit>
 #include "Read_sim_stats.h"
-#include "STTRAM_Power_model.h"
-#include "STTRAM_thermal_model.h"
+#include "STTRAM_Power_Model.h"
+#include "STTRAM_Thermal_Model.h"
 #include <fstream>
 namespace fs = std::filesystem;
 
@@ -219,7 +219,7 @@ void ThermalModel::runFullSimulation(){
     // DEBUG: Find the exact running location of the program
     std::cout << "DEBUG: Current working directory is: " << fs::current_path().string() << "\n";
     // Define the results folder wherever is most convenient for you
-    std::string results_folder = "C:/Users/Aditya/Documents/Uni/Individual Project/Results";
+    std::string results_folder = "Results";
     std::error_code ec; //This will catch OS errors
     
     // Check if folder exists, and catch any OS errors
