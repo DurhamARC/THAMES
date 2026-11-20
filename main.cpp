@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::string csv_file_path = (argc >= 2) ? argv[1] : "data/stream.csv";
+    std::string csv_file_path = (argc >= 2) ? argv[1] : "data/PARSEC/stream.csv";
     std::string results_folder = (argc == 3) ? argv[2] : "Results";
 
     std::cout << "Attempting to load file: \n" << csv_file_path << "\n\n";
