@@ -51,12 +51,49 @@ if [[ "${1:-}" == "--prepare" ]]; then
         echo "No raw CSV files found in $thames/data/$suite." >&2
         exit 1
     fi
+    total_files=${#files[@]}
+    progress_file="$run_dir/thames_progress.json"
+    update_progress() {
+        python - "$progress_file" "$total_files" "$1" "$2" "$3" <<'PYEOF'
+import json
+import os
+import sys
+
+path, total, completed, current, action = sys.argv[1:]
+if action == "init":
+    files = []
+else:
+    with open(path, encoding="utf-8") as source:
+        files = json.load(source)["files"]
+    if action == "start":
+        files.append({"name": current, "status": "processing"})
+    elif action == "complete":
+        files[-1]["status"] = "completed"
+progress = {
+    "total": int(total),
+    "completed": int(completed),
+    "current": current if action == "start" else None,
+    "files": files,
+}
+temporary = path + ".tmp"
+with open(temporary, "w", encoding="utf-8") as output:
+    json.dump(progress, output)
+    output.write("\n")
+os.replace(temporary, path)
+PYEOF
+    }
+
+    completed=0
+    update_progress "$completed" "" init
     for csv in "${files[@]}"; do
         prefix="${csv##*/}"
         prefix="${prefix%.csv}"
         echo "Preparing $csv"
+        update_progress "$completed" "$prefix" start
         (cd "$thames" && ./thames "$csv" Results)
         python convert_thames_to_epitonic.py --prefix "$prefix" --results-dir "$thames/Results" --data-dir "$repo/data"
+        completed=$((completed + 1))
+        update_progress "$completed" "$prefix" complete
     done
     echo "Preparation complete."
     exit 0
