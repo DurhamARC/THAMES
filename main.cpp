@@ -11,6 +11,15 @@
 #include "STTRAM_Thermal_Model.h"
 
 int main(int argc, char* argv[]) {
+    if (argc == 3 && std::string(argv[1]) == "--count-timesteps") {
+        try {
+            std::cout << countSimulatorTimesteps(argv[2]) << "\n";
+            return 0;
+        } catch (const std::exception& e) {
+            std::cerr << "[ERROR] " << e.what() << "\n";
+            return 1;
+        }
+    }
     std::cout << "==================================================\n";
     std::cout << "         STT-RAM Thermal Simulation Engine\n";
     std::cout << "==================================================\n\n";

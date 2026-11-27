@@ -10,6 +10,7 @@
 #include "STTRAM_Power_Model.h"
 #include "STTRAM_Thermal_Model.h"
 #include <fstream>
+#include <cstdlib>
 namespace fs = std::filesystem;
 
 
@@ -215,6 +216,33 @@ void ThermalModel::thermalStep() {
 
 bool ThermalModel::runFullSimulation(const std::string& results_folder){
     int N_timesteps = sim_write_data[0].size();
+    const char* progress_path = std::getenv("THAMES_TIMESTEP_PROGRESS");
+    const char* progress_index = std::getenv("THAMES_PROGRESS_INDEX");
+    const char* expected = std::getenv("THAMES_EXPECTED_TIMESTEPS");
+    if (progress_path && (!progress_index || !expected || std::to_string(N_timesteps) != expected)) {
+        std::cerr << "[ERROR] Timestep progress settings or input count do not match the simulation.\n";
+        return false;
+    }
+    auto publish_progress = [&](int completed) {
+        if (!progress_path) return true;
+        fs::path path(progress_path);
+        fs::path temporary = path.string() + ".tmp";
+        std::ofstream output(temporary);
+        output << progress_index << " " << completed << "\n";
+        output.close();
+        if (!output) {
+            std::cerr << "[ERROR] Failed to write timestep progress: " << temporary << "\n";
+            return false;
+        }
+        std::error_code error;
+        fs::rename(temporary, path, error);
+        if (error) {
+            std::cerr << "[ERROR] Failed to publish timestep progress: " << error.message() << "\n";
+            return false;
+        }
+        return true;
+    };
+    if (!publish_progress(0)) return false;
 
     // DEBUG: Find the exact running location of the program
     std::cout << "DEBUG: Current working directory is: " << fs::current_path().string() << "\n";
@@ -263,6 +291,7 @@ bool ThermalModel::runFullSimulation(const std::string& results_folder){
         }
 
         resetPower(); //Reset banks to idle/static leakage power
+        if (!publish_progress(timestep + 1)) return false;
 
         if (timestep  % 5 == 0) {
             printMaxTemp();// For debugging

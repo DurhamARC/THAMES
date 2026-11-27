@@ -52,14 +52,33 @@ if [[ "${1:-}" == "--prepare" ]]; then
         exit 1
     fi
     total_files=${#files[@]}
+    counts=()
+    total_timesteps=0
+    for csv in "${files[@]}"; do
+        count=$(cd "$thames" && ./thames --count-timesteps "$csv") || {
+            echo "Could not count timesteps in $csv; ensure THAMES is rebuilt with progress support." >&2
+            exit 1
+        }
+        [[ "$count" =~ ^[1-9][0-9]*$ ]] || {
+            echo "Invalid timestep count for $csv: $count" >&2
+            exit 1
+        }
+        counts+=("$count")
+        total_timesteps=$((total_timesteps + count))
+    done
     progress_file="$run_dir/thames_progress.json"
+    if [[ "$run_dir" == /* ]]; then
+        timestep_file="$run_dir/thames_timestep_progress"
+    else
+        timestep_file="$PWD/$run_dir/thames_timestep_progress"
+    fi
     update_progress() {
-        python - "$progress_file" "$total_files" "$1" "$2" "$3" <<'PYEOF'
+        python - "$progress_file" "$total_files" "$total_timesteps" "$1" "$2" "$3" "$4" "$5" <<'PYEOF'
 import json
 import os
 import sys
 
-path, total, completed, current, action = sys.argv[1:]
+path, total, total_steps, completed, current, action, completed_steps, current_steps = sys.argv[1:]
 if action == "init":
     files = []
 else:
@@ -74,6 +93,9 @@ progress = {
     "completed": int(completed),
     "current": current if action == "start" else None,
     "files": files,
+    "total_timesteps": int(total_steps),
+    "completed_timesteps": int(completed_steps),
+    "current_timesteps": int(current_steps),
 }
 temporary = path + ".tmp"
 with open(temporary, "w", encoding="utf-8") as output:
@@ -84,16 +106,25 @@ PYEOF
     }
 
     completed=0
-    update_progress "$completed" "" init
+    completed_steps=0
+    update_progress "$completed" "" init "$completed_steps" 0
     for csv in "${files[@]}"; do
+        current_steps=${counts[$completed]}
         prefix="${csv##*/}"
         prefix="${prefix%.csv}"
         echo "Preparing $csv"
-        update_progress "$completed" "$prefix" start
-        (cd "$thames" && ./thames "$csv" Results)
+        update_progress "$completed" "$prefix" start "$completed_steps" "$current_steps"
+        (cd "$thames" && THAMES_TIMESTEP_PROGRESS="$timestep_file" \
+            THAMES_PROGRESS_INDEX="$completed" THAMES_EXPECTED_TIMESTEPS="$current_steps" \
+            ./thames "$csv" Results)
+        if [[ ! -f "$timestep_file" ]] || [[ "$(cat "$timestep_file")" != "$completed $current_steps" ]]; then
+            echo "THAMES did not report completed timesteps for $csv." >&2
+            exit 1
+        fi
         python convert_thames_to_epitonic.py --prefix "$prefix" --results-dir "$thames/Results" --data-dir "$repo/data"
         completed=$((completed + 1))
-        update_progress "$completed" "$prefix" complete
+        completed_steps=$((completed_steps + current_steps))
+        update_progress "$completed" "$prefix" complete "$completed_steps" 0
     done
     echo "Preparation complete."
     exit 0

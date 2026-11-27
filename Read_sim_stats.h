@@ -4,7 +4,26 @@
 #include <vector>
 #include <string>
 #include <filesystem> // C++17 feature
+#include <stdexcept>
 namespace fs = std::filesystem;
+
+inline size_t countSimulatorTimesteps(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file) throw std::runtime_error("Cannot open input CSV: " + filename);
+    std::string line, value;
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        std::stringstream row(line);
+        std::getline(row, value, ',');
+        std::getline(row, value, ',');
+        size_t count = 0;
+        while (std::getline(row, value, ',')) {
+            if (!value.empty()) ++count;
+        }
+        if (count > 1) return count - 1;
+    }
+    throw std::runtime_error("Input CSV contains no timesteps: " + filename);
+}
 
 
 
