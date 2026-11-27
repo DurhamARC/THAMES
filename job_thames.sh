@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 #SBATCH --account=bddur64
-#SBATCH --time=1:00:00
+#SBATCH --time=6:00:00
 #SBATCH --job-name=THAMES
 #SBATCH -o job_thames-%A_%a.out
 #SBATCH -e job_thames-%A_%a.err
